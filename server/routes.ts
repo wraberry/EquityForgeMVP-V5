@@ -233,6 +233,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Company onboarding routes
+  app.post("/api/organizations/talent-needs", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const talentNeedsData = req.body;
+      
+      // Update organization with talent needs
+      const organization = await storage.updateOrganization(userId, talentNeedsData);
+      res.json(organization);
+    } catch (error) {
+      console.error("Error saving talent needs:", error);
+      res.status(500).json({ message: "Failed to save talent needs" });
+    }
+  });
+
+  app.post("/api/organizations/invite", isAuthenticated, async (req: any, res) => {
+    try {
+      const { email, role, message } = req.body;
+      const inviterUserId = req.user.claims.sub;
+      
+      // Return success - in production this would send an email invitation
+      res.json({ 
+        message: "Invitation sent successfully",
+        invitedEmail: email,
+        role,
+        customMessage: message 
+      });
+    } catch (error) {
+      console.error("Error sending invitation:", error);
+      res.status(500).json({ message: "Failed to send invitation" });
+    }
+  });
+
   // Opportunity routes
   app.get("/api/opportunities", async (req, res) => {
     try {

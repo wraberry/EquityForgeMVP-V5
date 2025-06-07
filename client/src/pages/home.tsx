@@ -56,6 +56,34 @@ export default function Home() {
 
   const isTalent = user?.userType === "talent";
   const isOrganization = user?.userType === "organization";
+  const needsCompanyProfile = isOrganization && !user?.additionalData;
+
+  // Show company onboarding for organizations without profile
+  useEffect(() => {
+    if (needsCompanyProfile) {
+      setShowCompanyOnboarding(true);
+    }
+  }, [needsCompanyProfile]);
+
+  // Show company onboarding flow
+  if (showCompanyOnboarding && needsCompanyProfile) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <Header />
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Welcome to EquityForge.io!
+            </h1>
+            <p className="text-lg text-gray-600">
+              Let's set up your company profile to start connecting with talent
+            </p>
+          </div>
+          <CompanyOnboarding onComplete={() => setShowCompanyOnboarding(false)} />
+        </div>
+      </div>
+    );
+  }
 
   // Mock stats for demonstration
   const talentStats = {

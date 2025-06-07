@@ -7,8 +7,8 @@ import { Handshake, Search, Shield, Clock, Rocket, Palette, TrendingUp, ArrowRig
 export default function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogin = () => {
-    window.location.href = "/api/login";
+  const handleSignIn = () => {
+    window.location.href = "/user-type-selection";
   };
 
   const handleGetStarted = () => {
@@ -82,10 +82,10 @@ export default function Landing() {
 
             {/* Auth Buttons */}
             <div className="hidden md:flex items-center space-x-4">
-              <Button variant="ghost" onClick={handleLogin}>
+              <Button variant="ghost" onClick={handleSignIn}>
                 Sign In
               </Button>
-              <Button onClick={handleLogin}>
+              <Button onClick={handleGetStarted}>
                 Get Started
               </Button>
             </div>
@@ -111,10 +111,10 @@ export default function Landing() {
                 <a href="#" className="text-gray-700 hover:text-primary transition-colors duration-200">How It Works</a>
                 <a href="#" className="text-gray-700 hover:text-primary transition-colors duration-200">About</a>
                 <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200">
-                  <Button variant="ghost" onClick={handleLogin} className="justify-start">
+                  <Button variant="ghost" onClick={handleSignIn} className="justify-start">
                     Sign In
                   </Button>
-                  <Button onClick={handleLogin} className="justify-start">
+                  <Button onClick={handleGetStarted} className="justify-start">
                     Get Started
                   </Button>
                 </div>
@@ -220,7 +220,7 @@ export default function Landing() {
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Latest Opportunities</h2>
               <p className="text-gray-600">Discover exciting roles with equity potential</p>
             </div>
-            <Button variant="ghost" onClick={handleLogin} className="text-primary hover:text-blue-700 font-semibold flex items-center">
+            <Button variant="ghost" onClick={handleGetStarted} className="text-primary hover:text-blue-700 font-semibold flex items-center">
               View All <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
@@ -260,7 +260,7 @@ export default function Landing() {
                         <Clock className="w-4 h-4 mr-1" />
                         Posted {opportunity.postedDays} day{opportunity.postedDays !== 1 ? 's' : ''} ago
                       </div>
-                      <Button onClick={handleLogin}>
+                      <Button onClick={handleGetStarted}>
                         Apply Now
                       </Button>
                     </div>

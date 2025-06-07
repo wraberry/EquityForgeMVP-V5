@@ -139,7 +139,7 @@ export default function Landing() {
               <Button
                 size="lg"
                 variant="secondary"
-                onClick={handleLogin}
+                onClick={handleGetStarted}
                 className="bg-white text-primary hover:bg-gray-100 px-8 py-4 text-lg shadow-lg"
               >
                 <Search className="w-5 h-5 mr-2" />
@@ -148,7 +148,7 @@ export default function Landing() {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={handleLogin}
+                onClick={handleHiringTalent}
                 className="border-2 border-white text-white hover:bg-white hover:text-primary px-8 py-4 text-lg"
               >
                 <Handshake className="w-5 h-5 mr-2" />

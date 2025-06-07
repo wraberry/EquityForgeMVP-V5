@@ -56,38 +56,51 @@ export default function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          {isAuthenticated && (
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/opportunities">
-                <a className={`flex items-center text-gray-700 hover:text-primary transition-colors duration-200 ${
-                  isActive("/opportunities") ? "text-primary font-medium" : ""
-                }`}>
-                  <Search className="w-4 h-4 mr-2" />
-                  Find Opportunities
-                </a>
-              </Link>
-              
-              {isOrganization && (
-                <Link href="/post-opportunity">
+          <nav className="hidden md:flex space-x-8">
+            {!isAuthenticated && (
+              <a 
+                href="https://www.equityforge.io/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center text-gray-700 hover:text-primary transition-colors duration-200"
+              >
+                About
+              </a>
+            )}
+            
+            {isAuthenticated && (
+              <>
+                <Link href="/opportunities">
                   <a className={`flex items-center text-gray-700 hover:text-primary transition-colors duration-200 ${
-                    isActive("/post-opportunity") ? "text-primary font-medium" : ""
+                    isActive("/opportunities") ? "text-primary font-medium" : ""
                   }`}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Post Opportunity
+                    <Search className="w-4 h-4 mr-2" />
+                    Find Opportunities
                   </a>
                 </Link>
-              )}
-              
-              <Link href="/messages">
-                <a className={`flex items-center text-gray-700 hover:text-primary transition-colors duration-200 ${
-                  isActive("/messages") ? "text-primary font-medium" : ""
-                }`}>
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Messages
-                </a>
-              </Link>
-            </nav>
-          )}
+                
+                {isOrganization && (
+                  <Link href="/post-opportunity">
+                    <a className={`flex items-center text-gray-700 hover:text-primary transition-colors duration-200 ${
+                      isActive("/post-opportunity") ? "text-primary font-medium" : ""
+                    }`}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Post Opportunity
+                    </a>
+                  </Link>
+                )}
+                
+                <Link href="/messages">
+                  <a className={`flex items-center text-gray-700 hover:text-primary transition-colors duration-200 ${
+                    isActive("/messages") ? "text-primary font-medium" : ""
+                  }`}>
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Messages
+                  </a>
+                </Link>
+              </>
+            )}
+          </nav>
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
@@ -170,6 +183,27 @@ export default function Header() {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
+            {!isAuthenticated && (
+              <nav className="flex flex-col space-y-4">
+                <a 
+                  href="https://www.equityforge.io/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center text-gray-700 hover:text-primary transition-colors duration-200"
+                >
+                  About
+                </a>
+                <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200">
+                  <Button variant="ghost" onClick={handleLogin} className="justify-start">
+                    Sign In
+                  </Button>
+                  <Button onClick={handleLogin} className="justify-start">
+                    Get Started
+                  </Button>
+                </div>
+              </nav>
+            )}
+            
             {isAuthenticated ? (
               <nav className="flex flex-col space-y-4">
                 <Link href="/opportunities">

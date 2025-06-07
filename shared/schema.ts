@@ -31,7 +31,9 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  userType: varchar("user_type").notNull().default("talent"), // 'talent' or 'organization'
+  passwordHash: varchar("password_hash"), // For email/password authentication
+  authProvider: varchar("auth_provider").default("replit"), // 'email', 'replit', 'google'
+  userType: varchar("user_type"), // 'talent' or 'organization'
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

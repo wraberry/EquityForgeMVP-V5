@@ -34,7 +34,7 @@ export default function Header() {
   };
 
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/signin";
   };
 
   const isActive = (path: string) => location === path;

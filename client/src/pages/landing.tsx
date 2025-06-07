@@ -12,11 +12,11 @@ export default function Landing() {
   };
 
   const handleGetStarted = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/signup";
   };
 
   const handleHiringTalent = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/signup";
   };
 
   const opportunities = [

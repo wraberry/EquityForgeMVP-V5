@@ -11,6 +11,8 @@ import Opportunities from "@/pages/opportunities";
 import PostOpportunity from "@/pages/post-opportunity";
 import Messages from "@/pages/messages";
 import UserTypeSelection from "@/pages/user-type-selection";
+import Signup from "@/pages/signup";
+import Signin from "@/pages/signin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -23,6 +25,8 @@ function Router() {
       ) : !isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
+          <Route path="/signup" component={Signup} />
+          <Route path="/signin" component={Signin} />
           <Route path="/user-type-selection" component={UserTypeSelection} />
         </>
       ) : !user?.userType ? (

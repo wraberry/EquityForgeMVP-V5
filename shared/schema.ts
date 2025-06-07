@@ -185,6 +185,8 @@ export const upsertUserSchema = insertUserSchema.pick({
   firstName: true,
   lastName: true,
   profileImageUrl: true,
+  passwordHash: true,
+  authProvider: true,
   userType: true,
 });
 

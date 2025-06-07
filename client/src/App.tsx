@@ -12,6 +12,7 @@ import PostOpportunity from "@/pages/post-opportunity";
 import Messages from "@/pages/messages";
 import UserTypeSelection from "@/pages/user-type-selection";
 import EmailSignup from "@/pages/email-signup";
+import AuthCallback from "@/pages/auth-callback";
 import Signup from "@/pages/signup";
 import Signin from "@/pages/signin";
 import NotFound from "@/pages/not-found";
@@ -24,6 +25,7 @@ function Router() {
       {/* Always accessible routes */}
       <Route path="/user-type-selection" component={UserTypeSelection} />
       <Route path="/email-signup" component={EmailSignup} />
+      <Route path="/auth-callback" component={AuthCallback} />
       
       {isLoading ? (
         <Route path="/" component={() => <div className="min-h-screen flex items-center justify-center">Loading...</div>} />
@@ -34,7 +36,7 @@ function Router() {
           <Route path="/signin" component={() => { window.location.href = "/user-type-selection"; return null; }} />
         </>
       ) : !user?.userType ? (
-        <Route path="/" component={UserTypeSelection} />
+        <Route path="/" component={AuthCallback} />
       ) : (
         <>
           <Route path="/" component={Home} />

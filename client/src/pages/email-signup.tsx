@@ -110,9 +110,9 @@ export default function EmailSignup() {
                 userType === "talent" ? "bg-blue-100" : "bg-green-100"
               }`}>
                 {userType === "talent" ? (
-                  <User className={`w-8 h-8 ${userType === "talent" ? "text-primary" : "text-green-600"}`} />
+                  <User className="w-8 h-8 text-primary" />
                 ) : (
-                  <Building className={`w-8 h-8 ${userType === "talent" ? "text-primary" : "text-green-600"}`} />
+                  <Building className="w-8 h-8 text-green-600" />
                 )}
               </div>
             </div>

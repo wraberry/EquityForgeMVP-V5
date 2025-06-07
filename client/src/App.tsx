@@ -18,17 +18,20 @@ import NotFound from "@/pages/not-found";
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
   return (
     <Switch>
-      {isLoading ? (
-        <Route path="/" component={() => <div className="min-h-screen flex items-center justify-center">Loading...</div>} />
-      ) : !isAuthenticated ? (
-        <>
-          <Route path="/" component={Landing} />
-          <Route path="/signup" component={Signup} />
-          <Route path="/signin" component={Signin} />
-          <Route path="/user-type-selection" component={UserTypeSelection} />
-        </>
+      {/* Public routes - always accessible */}
+      <Route path="/user-type-selection" component={UserTypeSelection} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/signin" component={Signin} />
+      
+      {/* Root route handling */}
+      {!isAuthenticated ? (
+        <Route path="/" component={Landing} />
       ) : !user?.userType ? (
         <Route path="/" component={UserTypeSelection} />
       ) : (
@@ -38,9 +41,10 @@ function Router() {
           <Route path="/opportunities" component={Opportunities} />
           <Route path="/post-opportunity" component={PostOpportunity} />
           <Route path="/messages" component={Messages} />
-          <Route path="/user-type-selection" component={UserTypeSelection} />
         </>
       )}
+      
+      {/* 404 fallback */}
       <Route component={NotFound} />
     </Switch>
   );

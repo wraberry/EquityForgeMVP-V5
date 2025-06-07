@@ -11,6 +11,7 @@ import Opportunities from "@/pages/opportunities";
 import PostOpportunity from "@/pages/post-opportunity";
 import Messages from "@/pages/messages";
 import UserTypeSelection from "@/pages/user-type-selection";
+import EmailSignup from "@/pages/email-signup";
 import Signup from "@/pages/signup";
 import Signin from "@/pages/signin";
 import NotFound from "@/pages/not-found";
@@ -22,6 +23,7 @@ function Router() {
     <Switch>
       {/* Always accessible routes */}
       <Route path="/user-type-selection" component={UserTypeSelection} />
+      <Route path="/email-signup" component={EmailSignup} />
       
       {isLoading ? (
         <Route path="/" component={() => <div className="min-h-screen flex items-center justify-center">Loading...</div>} />

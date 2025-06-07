@@ -4,7 +4,6 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupPassportAuth, passport } from "./auth";
 import bcrypt from "bcryptjs";
-import { z } from "zod";
 import {
   insertProfileSchema,
   insertOrganizationSchema,
@@ -17,6 +16,7 @@ import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+  setupPassportAuth(app);
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -59,6 +59,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update user type" });
     }
   });
+
+  // Email/Password Authentication Routes
+  const signupSchema = z.object({
+    firstName: z.string().min(1).max(50),
+    lastName: z.string().min(1).max(50),
+    email: z.string().email(),
+    password: z.string().min(8),
+  });
+
+  const signinSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(1),
+  });
+
+  app.post('/api/auth/signup', async (req, res) => {
+    try {
+      const validated = signupSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(validated.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists with this email" });
+      }
+
+      // Hash password
+      const saltRounds = 12;
+      const passwordHash = await bcrypt.hash(validated.password, saltRounds);
+
+      // Create user
+      const user = await storage.createEmailUser({
+        email: validated.email,
+        firstName: validated.firstName,
+        lastName: validated.lastName,
+        passwordHash,
+      });
+
+      // Log in the user
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Login error after signup:", err);
+          return res.status(500).json({ message: "Account created but login failed" });
+        }
+        res.json({ message: "Account created successfully", user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } });
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      console.error("Signup error:", error);
+      res.status(500).json({ message: "Failed to create account" });
+    }
+  });
+
+  app.post('/api/auth/signin', (req, res, next) => {
+    try {
+      const validated = signinSchema.parse(req.body);
+      
+      passport.authenticate('local', (err: any, user: any, info: any) => {
+        if (err) {
+          console.error("Authentication error:", err);
+          return res.status(500).json({ message: "Authentication failed" });
+        }
+        
+        if (!user) {
+          return res.status(401).json({ message: info?.message || "Invalid email or password" });
+        }
+
+        req.login(user, (loginErr) => {
+          if (loginErr) {
+            console.error("Login error:", loginErr);
+            return res.status(500).json({ message: "Login failed" });
+          }
+          res.json({ message: "Signed in successfully", user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } });
+        });
+      })(req, res, next);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      console.error("Signin error:", error);
+      res.status(500).json({ message: "Failed to sign in" });
+    }
+  });
+
+  // Google OAuth Routes
+  app.get('/api/auth/google', 
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
+
+  app.get('/api/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/signin' }),
+    (req, res) => {
+      // Successful authentication, redirect to user type selection or home
+      const user = req.user as any;
+      if (!user?.userType) {
+        res.redirect('/user-type-selection');
+      } else {
+        res.redirect('/');
+      }
+    }
+  );
 
   // Profile routes
   app.get("/api/profiles/:userId", async (req, res) => {

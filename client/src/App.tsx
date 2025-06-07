@@ -10,15 +10,23 @@ import Profile from "@/pages/profile";
 import Opportunities from "@/pages/opportunities";
 import PostOpportunity from "@/pages/post-opportunity";
 import Messages from "@/pages/messages";
+import UserTypeSelection from "@/pages/user-type-selection";
 import NotFound from "@/pages/not-found";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
+      {isLoading ? (
+        <Route path="/" component={() => <div className="min-h-screen flex items-center justify-center">Loading...</div>} />
+      ) : !isAuthenticated ? (
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/user-type-selection" component={UserTypeSelection} />
+        </>
+      ) : !user?.userType ? (
+        <Route path="/" component={UserTypeSelection} />
       ) : (
         <>
           <Route path="/" component={Home} />
@@ -26,6 +34,7 @@ function Router() {
           <Route path="/opportunities" component={Opportunities} />
           <Route path="/post-opportunity" component={PostOpportunity} />
           <Route path="/messages" component={Messages} />
+          <Route path="/user-type-selection" component={UserTypeSelection} />
         </>
       )}
       <Route component={NotFound} />

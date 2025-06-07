@@ -11,6 +11,14 @@ export default function Landing() {
     window.location.href = "/api/login";
   };
 
+  const handleGetStarted = () => {
+    window.location.href = "/api/login";
+  };
+
+  const handleHiringTalent = () => {
+    window.location.href = "/api/login";
+  };
+
   const opportunities = [
     {
       id: 1,

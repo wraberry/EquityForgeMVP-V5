@@ -40,6 +40,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/auth/user-type', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { userType } = req.body;
+      
+      if (!userType || !['talent', 'organization'].includes(userType)) {
+        return res.status(400).json({ message: "Invalid user type" });
+      }
+
+      const updatedUser = await storage.updateUserType(userId, userType);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user type:", error);
+      res.status(500).json({ message: "Failed to update user type" });
+    }
+  });
+
   // Profile routes
   app.get("/api/profiles/:userId", async (req, res) => {
     try {

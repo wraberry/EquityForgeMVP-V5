@@ -1,0 +1,79 @@
+We are building EquityForge.io, a platform to connect talent with opportunities, including full-time, part-time, contract, or co-founder roles with potential equity compensation. The platform will also provide tools for organizations to find, vet, and engage with potential candidates.
+
+Here's a breakdown of the requirements:
+
+**I. Project Overview**
+
+* **Product Name:** EquityForge.io
+* **Overview:** EquityForge.io aims to be a premier online platform connecting talented individuals with innovative companies and projects, focusing on paid and volunteer opportunities that may include multiple types of compensation (cash, equity, experience).
+* **Goals:**
+    * Connect Talent with Opportunity: Facilitate efficient matching of skilled professionals with relevant job openings, freelance projects, and co-founder opportunities.
+    * Streamline Hiring: Provide innovative for profit and nonprofit organizations with tools to easily find, vet, and engage with potential candidates.
+    * Empower Professionals: Offer a platform for individuals to showcase their skills, experience, and career aspirations, and to discover opportunities that align with their goals, including those offering equity.
+    * Foster a Trusted Community: Build a secure and reliable platform with transparent processes for reviews, ratings, and communication.
+    * Enable Growth: Create a scalable platform that can accommodate a growing user base and an expanding set of features.
+* **Target Audience:**
+    * Talent/Job Seekers: Professionals across various industries (e.g., software engineering, design, marketing, product management) seeking full-time, part-time, contract, or co-founder roles, particularly those interested in startups and equity compensation.
+    * Companies/Recruiters: Startups, Nonprofits, and small to medium-sized businesses (SMBs) to hire talent or find collaborators.
+    * Project Posters: Organizations looking for talent for specific projects.
+
+**II. Feature Requirements (Modules)**
+
+    * Authentication Module
+    * Onboarding (Profile) Flow Module
+    * Talent Marketplace Module
+    * Professional Users & Organization Home Dashboard
+    * Talent Matching Workflow Module
+    * Volunteer & Project Tracking Activity Reporting
+    * Database, Data Transfer, and Data Flow Module
+    * Administrator Dashboard Module
+    * Security Module
+    * Payment Module
+    * Account Settings Page Module
+    * In-App Messaging Module
+    * Recommendation Algorithm Module
+    * Review & Rating Module
+    * User Referrals Module
+
+For each module, please define user stories, features, and technical requirements.
+
+**III. Technical Specifications**
+
+* **Tech Stack:**
+    * Frontend: React, Vue.js, or Typescript.
+    * Backend: Node.js (with Express/NestJS), Python (Django/Flask), Ruby on Rails, Java (Spring Boot), Go.
+    * Database: PostgreSQL, Supabase.
+    * Search: Elasticsearch, Apache Solr.
+    * Cloud Platform: Google Cloud Platform or Azure.
+* **Architecture:** Monolithic
+* **External Integrations:**
+    * Backend Services: Supabase (Database & authentication), Stripe (Payments)
+    * AI Services: Anthropic (Claude models for recommendations)
+    * Developer Tools: Sentry (Error tracking), PostHog (Analytics)
+* **API Design:** RESTful
+* **DevOps:** CI/CD pipeline, automated testing (unit, integration, E2E), containerization (Docker, Kubernetes).
+* **Monitoring & Logging:** Comprehensive logging and monitoring solution (e.g., ELK stack, Sentry).
+* **Scalability & Performance:** Design for horizontal scalability. Caching strategies (e.g., Redis, Memcached). CDN for static assets. Load balancing.
+* **Mobile Responsiveness:** Ensure the website is fully responsive and provides a good user experience on mobile devices.
+
+**IV. Design System**
+    * Colors: Primary: Use the primary, secondary, and Accents found in this website https://www.equityforge.io/)
+    * Typography: Font Family: Arial, Helvetica, sans-serif
+    * Spacing: Grid system: 8px grid
+    * Components: Use components found in a ShadCN style, such as buttons, cards, forms, navigation bars.
+
+**V. Data Model**
+* Define the main entities (e.g., Users, Companies, Opportunities, Applications) and their relationships. Include key attributes for each entity.
+
+**VI. System Prompt Guidelines**
+* Always define a data model.
+* Start with mock data instead of a database.
+* Respond back with your plan before writing code.
+* Create a component library for reuse.
+* Create centralized state management.
+* Identify conflicts or issues when requests are given.
+* Batch implementation into smaller chunks.
+* Double-check you're changing the correct files.
+* Break down the project into many components.
+
+Let's start by generating a plan for the Authentication Module. Do not generate code yet.

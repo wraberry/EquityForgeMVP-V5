@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -8,15 +8,17 @@ import Footer from "@/components/layout/footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Send, MessageCircle, Users, Briefcase, TrendingUp } from "lucide-react";
+import { Eye, Send, MessageCircle, Users, Briefcase, TrendingUp, Building2, CheckCircle } from "lucide-react";
 import OpportunityCard from "@/components/opportunity-card";
 import ApplicationCard from "@/components/application-card";
 import ProfileCompletion from "@/components/profile-completion";
+import CompanyOnboarding from "@/components/company-onboarding";
 import type { OpportunityWithOrganization, ApplicationWithOpportunity } from "@/lib/types";
 
 export default function Home() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
+  const [showCompanyOnboarding, setShowCompanyOnboarding] = useState(false);
 
   // Redirect to home if not authenticated
   useEffect(() => {

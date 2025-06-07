@@ -34,7 +34,7 @@ export default function Header() {
   };
 
   const handleLogin = () => {
-    window.location.href = "/signin";
+    window.location.href = "/user-type-selection";
   };
 
   const isActive = (path: string) => location === path;

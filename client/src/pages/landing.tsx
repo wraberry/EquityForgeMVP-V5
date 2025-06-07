@@ -8,7 +8,7 @@ export default function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogin = () => {
-    window.location.href = "/user-type-selection";
+    window.location.href = "/api/login";
   };
 
   const handleGetStarted = () => {

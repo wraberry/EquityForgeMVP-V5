@@ -11,8 +11,6 @@ import Opportunities from "@/pages/opportunities";
 import PostOpportunity from "@/pages/post-opportunity";
 import Messages from "@/pages/messages";
 import UserTypeSelection from "@/pages/user-type-selection";
-import EmailSignup from "@/pages/email-signup";
-import AuthCallback from "@/pages/auth-callback";
 import Signup from "@/pages/signup";
 import Signin from "@/pages/signin";
 import NotFound from "@/pages/not-found";
@@ -22,21 +20,17 @@ function Router() {
 
   return (
     <Switch>
-      {/* Always accessible routes */}
-      <Route path="/user-type-selection" component={UserTypeSelection} />
-      <Route path="/email-signup" component={EmailSignup} />
-      <Route path="/auth-callback" component={AuthCallback} />
-      
       {isLoading ? (
         <Route path="/" component={() => <div className="min-h-screen flex items-center justify-center">Loading...</div>} />
       ) : !isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
-          <Route path="/signup" component={() => { window.location.href = "/user-type-selection"; return null; }} />
-          <Route path="/signin" component={() => { window.location.href = "/user-type-selection"; return null; }} />
+          <Route path="/signup" component={Signup} />
+          <Route path="/signin" component={Signin} />
+          <Route path="/user-type-selection" component={UserTypeSelection} />
         </>
       ) : !user?.userType ? (
-        <Route path="/" component={AuthCallback} />
+        <Route path="/" component={UserTypeSelection} />
       ) : (
         <>
           <Route path="/" component={Home} />
@@ -44,6 +38,7 @@ function Router() {
           <Route path="/opportunities" component={Opportunities} />
           <Route path="/post-opportunity" component={PostOpportunity} />
           <Route path="/messages" component={Messages} />
+          <Route path="/user-type-selection" component={UserTypeSelection} />
         </>
       )}
       <Route component={NotFound} />

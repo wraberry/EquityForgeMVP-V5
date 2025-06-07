@@ -66,7 +66,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     lastName: z.string().min(1).max(50),
     email: z.string().email(),
     password: z.string().min(8),
-    userType: z.enum(["talent", "organization"]),
   });
 
   const signinSchema = z.object({
@@ -88,13 +87,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const saltRounds = 12;
       const passwordHash = await bcrypt.hash(validated.password, saltRounds);
 
-      // Create user with user type
+      // Create user
       const user = await storage.createEmailUser({
         email: validated.email,
         firstName: validated.firstName,
         lastName: validated.lastName,
         passwordHash,
-        userType: validated.userType,
       });
 
       // Log in the user

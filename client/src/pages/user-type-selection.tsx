@@ -67,7 +67,7 @@ export default function UserTypeSelection() {
     if (selectedType) {
       localStorage.setItem('pendingUserType', selectedType);
     }
-    window.location.href = "/email-signup";
+    window.location.href = "/signup";
   };
 
   return (

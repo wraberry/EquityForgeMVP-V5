@@ -1,9 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
-import { setupPassportAuth, passport } from "./auth";
-import bcrypt from "bcryptjs";
+import { setupAuth, isAuthenticated } from "./auth";
 import {
   insertProfileSchema,
   insertOrganizationSchema,
@@ -16,12 +14,11 @@ import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
-  setupPassportAuth(app);
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -45,7 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/auth/user-type', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const { userType } = req.body;
       
       if (!userType || !['talent', 'organization'].includes(userType)) {
@@ -59,107 +56,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update user type" });
     }
   });
-
-  // Email/Password Authentication Routes
-  const signupSchema = z.object({
-    firstName: z.string().min(1).max(50),
-    lastName: z.string().min(1).max(50),
-    email: z.string().email(),
-    password: z.string().min(8),
-  });
-
-  const signinSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(1),
-  });
-
-  app.post('/api/auth/signup', async (req, res) => {
-    try {
-      const validated = signupSchema.parse(req.body);
-      
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(validated.email);
-      if (existingUser) {
-        return res.status(400).json({ message: "User already exists with this email" });
-      }
-
-      // Hash password
-      const saltRounds = 12;
-      const passwordHash = await bcrypt.hash(validated.password, saltRounds);
-
-      // Create user
-      const user = await storage.createEmailUser({
-        email: validated.email,
-        firstName: validated.firstName,
-        lastName: validated.lastName,
-        passwordHash,
-      });
-
-      // Log in the user
-      req.login(user, (err) => {
-        if (err) {
-          console.error("Login error after signup:", err);
-          return res.status(500).json({ message: "Account created but login failed" });
-        }
-        res.json({ message: "Account created successfully", user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } });
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid input", errors: error.errors });
-      }
-      console.error("Signup error:", error);
-      res.status(500).json({ message: "Failed to create account" });
-    }
-  });
-
-  app.post('/api/auth/signin', (req, res, next) => {
-    try {
-      const validated = signinSchema.parse(req.body);
-      
-      passport.authenticate('local', (err: any, user: any, info: any) => {
-        if (err) {
-          console.error("Authentication error:", err);
-          return res.status(500).json({ message: "Authentication failed" });
-        }
-        
-        if (!user) {
-          return res.status(401).json({ message: info?.message || "Invalid email or password" });
-        }
-
-        req.login(user, (loginErr) => {
-          if (loginErr) {
-            console.error("Login error:", loginErr);
-            return res.status(500).json({ message: "Login failed" });
-          }
-          res.json({ message: "Signed in successfully", user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } });
-        });
-      })(req, res, next);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid input", errors: error.errors });
-      }
-      console.error("Signin error:", error);
-      res.status(500).json({ message: "Failed to sign in" });
-    }
-  });
-
-  // Google OAuth Routes
-  app.get('/api/auth/google', 
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-  );
-
-  app.get('/api/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/signin' }),
-    (req, res) => {
-      // Successful authentication, redirect to user type selection or home
-      const user = req.user as any;
-      if (!user?.userType) {
-        res.redirect('/user-type-selection');
-      } else {
-        res.redirect('/');
-      }
-    }
-  );
 
   // Profile routes
   app.get("/api/profiles/:userId", async (req, res) => {
@@ -177,23 +73,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/profiles", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const profileData = insertProfileSchema.parse({ ...req.body, userId });
-      
-      const existingProfile = await storage.getProfile(userId);
-      if (existingProfile) {
-        const updatedProfile = await storage.updateProfile(userId, req.body);
-        return res.json(updatedProfile);
-      }
-      
-      const profile = await storage.createProfile(profileData);
+      const userId = req.session.userId;
+      const profileData = { ...req.body, userId };
+      const validated = insertProfileSchema.parse(profileData);
+      const profile = await storage.createProfile(validated);
       res.status(201).json(profile);
     } catch (error) {
-      console.error("Error creating/updating profile:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create/update profile" });
+      console.error("Error creating profile:", error);
+      res.status(500).json({ message: "Failed to create profile" });
+    }
+  });
+
+  app.patch("/api/profiles/:userId", async (req, res) => {
+    try {
+      const updates = insertProfileSchema.partial().parse(req.body);
+      const profile = await storage.updateProfile(req.params.userId, updates);
+      res.json(profile);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
     }
   });
 
@@ -213,7 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organizations", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const organizationData = insertOrganizationSchema.parse({ ...req.body, userId });
       
       const existingOrganization = await storage.getOrganization(userId);
@@ -236,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Company onboarding routes
   app.post("/api/organizations/talent-needs", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const talentNeedsData = req.body;
       
       // Update organization with talent needs
@@ -251,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/organizations/invite", isAuthenticated, async (req: any, res) => {
     try {
       const { email, role, message } = req.body;
-      const inviterUserId = req.user.claims.sub;
+      const inviterUserId = req.session.userId;
       
       // Return success - in production this would send an email invitation
       res.json({ 
@@ -291,38 +195,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/opportunities", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const organization = await storage.getOrganization(userId);
-      
-      if (!organization) {
-        return res.status(403).json({ message: "Only organizations can post opportunities" });
-      }
-
-      const opportunityData = insertOpportunitySchema.parse({
-        ...req.body,
-        organizationId: organization.id,
-      });
-      
-      const opportunity = await storage.createOpportunity(opportunityData);
-      res.status(201).json(opportunity);
-    } catch (error) {
-      console.error("Error creating opportunity:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create opportunity" });
-    }
-  });
-
   app.get("/api/my-opportunities", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const organization = await storage.getOrganization(userId);
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
       
+      if (user?.userType !== "organization") {
+        return res.status(403).json({ message: "Only organizations can access this endpoint" });
+      }
+
+      const organization = await storage.getOrganization(userId);
       if (!organization) {
-        return res.json([]);
+        return res.status(404).json({ message: "Organization not found" });
       }
 
       const opportunities = await storage.getOpportunitiesByOrganization(organization.id);
@@ -333,10 +217,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/opportunities", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
+      
+      if (user?.userType !== "organization") {
+        return res.status(403).json({ message: "Only organizations can post opportunities" });
+      }
+
+      const organization = await storage.getOrganization(userId);
+      if (!organization) {
+        return res.status(404).json({ message: "Organization profile required" });
+      }
+
+      const opportunityData = { ...req.body, organizationId: organization.id };
+      const validated = insertOpportunitySchema.parse(opportunityData);
+      const opportunity = await storage.createOpportunity(validated);
+      res.status(201).json(opportunity);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      console.error("Error creating opportunity:", error);
+      res.status(500).json({ message: "Failed to create opportunity" });
+    }
+  });
+
   // Application routes
   app.get("/api/applications", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const applications = await storage.getApplicationsByUser(userId);
       res.json(applications);
     } catch (error) {
@@ -345,39 +256,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/applications", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const applicationData = insertApplicationSchema.parse({
-        ...req.body,
-        userId,
-      });
-      
-      const application = await storage.createApplication(applicationData);
-      res.status(201).json(application);
-    } catch (error) {
-      console.error("Error creating application:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create application" });
-    }
-  });
-
   app.get("/api/opportunities/:id/applications", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const opportunityId = parseInt(req.params.id);
+      const userId = req.session.userId;
       
-      // Verify the user owns this opportunity
-      const opportunity = await storage.getOpportunity(opportunityId);
-      if (!opportunity) {
-        return res.status(404).json({ message: "Opportunity not found" });
-      }
-
-      const organization = await storage.getOrganization(userId);
-      if (!organization || opportunity.organizationId !== organization.id) {
-        return res.status(403).json({ message: "Access denied" });
+      // Verify user owns this opportunity
+      const user = await storage.getUser(userId);
+      if (user?.userType !== "organization") {
+        return res.status(403).json({ message: "Only organizations can view applications" });
       }
 
       const applications = await storage.getApplicationsByOpportunity(opportunityId);
@@ -388,10 +275,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/applications", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
+      
+      if (user?.userType !== "talent") {
+        return res.status(403).json({ message: "Only talent can submit applications" });
+      }
+
+      const applicationData = { ...req.body, userId };
+      const validated = insertApplicationSchema.parse(applicationData);
+      const application = await storage.createApplication(validated);
+      res.status(201).json(application);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      console.error("Error creating application:", error);
+      res.status(500).json({ message: "Failed to create application" });
+    }
+  });
+
   // Message routes
   app.get("/api/conversations", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       const conversations = await storage.getConversations(userId);
       res.json(conversations);
     } catch (error) {
@@ -402,8 +311,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/messages/:otherUserId", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const messages = await storage.getMessagesBetweenUsers(userId, req.params.otherUserId);
+      const userId = req.session.userId;
+      const otherUserId = req.params.otherUserId;
+      const messages = await storage.getMessagesBetweenUsers(userId, otherUserId);
       res.json(messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -413,19 +323,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/messages", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const messageData = insertMessageSchema.parse({
-        ...req.body,
-        fromUserId: userId,
-      });
-      
-      const message = await storage.createMessage(messageData);
+      const userId = req.session.userId;
+      const messageData = { ...req.body, senderId: userId };
+      const validated = insertMessageSchema.parse(messageData);
+      const message = await storage.createMessage(validated);
       res.status(201).json(message);
     } catch (error) {
-      console.error("Error creating message:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
       }
+      console.error("Error creating message:", error);
       res.status(500).json({ message: "Failed to create message" });
     }
   });

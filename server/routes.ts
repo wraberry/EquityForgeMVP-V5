@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/profiles", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const profileData = { ...req.body, userId };
       const validated = insertProfileSchema.parse(profileData);
       const profile = await storage.createProfile(validated);
@@ -118,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organizations", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const organizationData = insertOrganizationSchema.parse({ ...req.body, userId });
       
       const existingOrganization = await storage.getOrganization(userId);
@@ -141,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Company onboarding routes
   app.post("/api/organizations/talent-needs", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const talentNeedsData = req.body;
       
       // Update organization with talent needs
@@ -156,7 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/organizations/invite", isAuthenticated, async (req: any, res) => {
     try {
       const { email, role, message } = req.body;
-      const inviterUserId = req.session.userId;
+      const inviterUserId = req.user.claims.sub;
       
       // Return success - in production this would send an email invitation
       res.json({ 
@@ -198,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/my-opportunities", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
       if (user?.userType !== "organization") {
@@ -220,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/opportunities", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
       if (user?.userType !== "organization") {
@@ -248,7 +248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Application routes
   app.get("/api/applications", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const applications = await storage.getApplicationsByUser(userId);
       res.json(applications);
     } catch (error) {

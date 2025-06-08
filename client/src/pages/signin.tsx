@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -41,13 +41,17 @@ export default function Signin() {
         title: "Welcome back!",
         description: "You have been signed in successfully.",
       });
-      // Check if user has pending user type selection
-      const pendingUserType = localStorage.getItem('pendingUserType');
-      if (pendingUserType) {
-        window.location.href = "/user-type-selection";
-      } else {
-        window.location.href = "/";
-      }
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Small delay to ensure auth state is updated
+      setTimeout(() => {
+        // Check if user has pending user type selection
+        const pendingUserType = localStorage.getItem('pendingUserType');
+        if (pendingUserType) {
+          window.location.href = "/user-type-selection";
+        } else {
+          window.location.href = "/";
+        }
+      }, 100);
     },
     onError: (error: any) => {
       toast({

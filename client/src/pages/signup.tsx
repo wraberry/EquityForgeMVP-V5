@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -45,8 +45,11 @@ export default function Signup() {
         title: "Account created successfully!",
         description: "Please select your account type to continue.",
       });
-      // Redirect to user type selection
-      window.location.href = "/user-type-selection";
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Small delay to ensure auth state is updated
+      setTimeout(() => {
+        window.location.href = "/user-type-selection";
+      }, 100);
     },
     onError: (error: any) => {
       toast({

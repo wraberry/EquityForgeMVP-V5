@@ -32,6 +32,9 @@ function Router() {
       <Route path="/signup" component={Signup} />
       <Route path="/signin" component={Signin} />
       
+      {/* User type selection route - accessible when authenticated but no userType */}
+      <Route path="/user-type-selection" component={UserTypeSelection} />
+      
       {!isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : !(user as any)?.userType ? (

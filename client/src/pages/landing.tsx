@@ -111,10 +111,10 @@ export default function Landing() {
                 <a href="#" className="text-gray-700 hover:text-primary transition-colors duration-200">How It Works</a>
                 <a href="#" className="text-gray-700 hover:text-primary transition-colors duration-200">About</a>
                 <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200">
-                  <Button variant="ghost" onClick={handleSignIn} className="justify-start">
+                  <Button variant="ghost" onClick={() => window.location.href = "/signin"} className="justify-start">
                     Sign In
                   </Button>
-                  <Button onClick={handleGetStarted} className="justify-start">
+                  <Button onClick={() => window.location.href = "/signup"} className="justify-start">
                     Get Started
                   </Button>
                 </div>

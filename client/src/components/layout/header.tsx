@@ -29,12 +29,21 @@ export default function Header() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
+  const handleLogout = async () => {
+    try {
+      // Try email logout first
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (error) {
+      // If that fails, fall back to Replit logout
+      window.location.href = "/api/logout";
+      return;
+    }
+    // Refresh the page to update auth state
+    window.location.href = "/";
   };
 
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/signin";
   };
 
   const isActive = (path: string) => location === path;

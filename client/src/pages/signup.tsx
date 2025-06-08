@@ -43,7 +43,7 @@ export default function Signup() {
     onSuccess: () => {
       toast({
         title: "Account created successfully!",
-        description: "You can now sign in with your credentials.",
+        description: "Please select your account type to continue.",
       });
       // Redirect to user type selection
       window.location.href = "/user-type-selection";

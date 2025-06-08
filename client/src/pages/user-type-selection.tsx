@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -11,31 +11,44 @@ import { User, Building, CheckCircle, ArrowRight, Briefcase, Users, TrendingUp, 
 
 export default function UserTypeSelection() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
-  const [selectedType, setSelectedType] = useState<"talent" | "organization" | null>(null);
+  const { user, isAuthenticated } = useAuth();
+  const [selectedType, setSelectedType] = useState<"talent" | "organization" | null>(() => {
+    // Check for pending user type from localStorage
+    const pending = localStorage.getItem('pendingUserType');
+    return pending as "talent" | "organization" | null;
+  });
 
   const updateUserTypeMutation = useMutation({
     mutationFn: async (userType: "talent" | "organization") => {
       return await apiRequest("POST", "/api/auth/user-type", { userType });
     },
     onSuccess: () => {
+      localStorage.removeItem('pendingUserType');
       toast({
-        title: "Success",
-        description: "Account type selected successfully!",
+        title: "Account setup complete!",
+        description: "Welcome to EquityForge.io",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      // Redirect to home dashboard
       window.location.href = "/";
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
-        title: "Error",
-        description: "Failed to update account type. Please try again.",
+        title: "Setup failed",
+        description: error.message || "Failed to complete account setup.",
         variant: "destructive",
       });
     },
   });
+
+  // Handle authentication completion
+  useEffect(() => {
+    if (isAuthenticated && user && selectedType && !user.userType) {
+      // User just authenticated and has a pending user type
+      updateUserTypeMutation.mutate(selectedType);
+    } else if (isAuthenticated && user && user.userType) {
+      // User is already set up, redirect to home
+      window.location.href = "/";
+    }
+  }, [isAuthenticated, user, selectedType]);
 
   const handleContinue = () => {
     if (selectedType) {
@@ -123,7 +136,7 @@ export default function UserTypeSelection() {
                   <span>Build your professional network</span>
                 </div>
               </div>
-              
+
               {selectedType === "talent" && (
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <div className="flex items-center text-blue-800">
@@ -173,7 +186,7 @@ export default function UserTypeSelection() {
                   <span>Connect with top professionals and co-founders</span>
                 </div>
               </div>
-              
+
               {selectedType === "organization" && (
                 <div className="mt-6 p-4 bg-green-50 rounded-lg">
                   <div className="flex items-center text-green-800">
@@ -194,7 +207,7 @@ export default function UserTypeSelection() {
             <h3 className="text-lg font-semibold text-center mb-4">
               Create your {selectedType === "talent" ? "Professional" : "Organization"} account
             </h3>
-            
+
             <div className="space-y-3">
               <Button
                 type="button"
@@ -210,7 +223,7 @@ export default function UserTypeSelection() {
                 </svg>
                 Continue with Google
               </Button>
-              
+
               <Button
                 type="button"
                 variant="outline"
@@ -220,7 +233,7 @@ export default function UserTypeSelection() {
                 <User className="w-5 h-5 mr-2" />
                 Continue with Replit
               </Button>
-              
+
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <Separator className="w-full" />
@@ -231,7 +244,7 @@ export default function UserTypeSelection() {
                   </span>
                 </div>
               </div>
-              
+
               <Button
                 type="button"
                 className="w-full"
@@ -241,7 +254,7 @@ export default function UserTypeSelection() {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
-            
+
             <div className="text-center text-sm text-gray-600 mt-4">
               Already have an account?{" "}
               <a href="/signin" className="text-primary hover:underline font-medium">
@@ -266,7 +279,7 @@ export default function UserTypeSelection() {
                 </>
               )}
             </Button>
-            
+
             {!selectedType && (
               <p className="text-blue-100 text-sm mt-4">
                 Please select an account type to continue

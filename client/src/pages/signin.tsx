@@ -41,7 +41,13 @@ export default function Signin() {
         title: "Welcome back!",
         description: "You have been signed in successfully.",
       });
-      window.location.href = "/";
+      // Check if user has pending user type selection
+      const pendingUserType = localStorage.getItem('pendingUserType');
+      if (pendingUserType) {
+        window.location.href = "/user-type-selection";
+      } else {
+        window.location.href = "/";
+      }
     },
     onError: (error: any) => {
       toast({

@@ -44,15 +44,33 @@ export default function UserTypeSelection() {
     },
   });
 
-  // Handle authentication completion - only run once when user loads
+  // Auto-select pending type on component mount only
   useEffect(() => {
     const pendingType = localStorage.getItem('pendingUserType');
-    const userWithType = user as any;
-    if (isAuthenticated && user && pendingType && !userWithType.userType && !updateUserTypeMutation.isPending) {
+    if (pendingType && !selectedType) {
       setSelectedType(pendingType as "talent" | "organization");
-      updateUserTypeMutation.mutate(pendingType as "talent" | "organization");
     }
-  }, [isAuthenticated, userWithType?.id]); // Only depend on auth status and user ID to prevent loops
+  }, []); // Only run once on mount
+  
+  // Check if user already has a type and show proper UI
+  const userWithType = user as any;
+  const hasUserType = userWithType?.userType;
+  
+  if (isAuthenticated && user && hasUserType) {
+    // User already has a type, show completion message and redirect
+    setTimeout(() => window.location.href = "/", 1000);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Welcome back!</h2>
+            <p className="text-gray-600">Redirecting to your dashboard...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const handleContinue = () => {
     if (selectedType) {

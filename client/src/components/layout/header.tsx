@@ -109,9 +109,9 @@ export default function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar>
-                      <AvatarImage src={user?.profileImageUrl || undefined} />
+                      <AvatarImage src={(user as any)?.profileImageUrl || undefined} />
                       <AvatarFallback>
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        {(user as any)?.firstName?.[0]}{(user as any)?.lastName?.[0]}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -119,9 +119,9 @@ export default function Header() {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium">{user?.firstName} {user?.lastName}</p>
+                      <p className="font-medium">{(user as any)?.firstName} {(user as any)?.lastName}</p>
                       <p className="w-[200px] truncate text-sm text-muted-foreground">
-                        {user?.email}
+                        {(user as any)?.email}
                       </p>
                       <div className="flex items-center gap-1">
                         <Badge variant="outline" className="text-xs">
@@ -238,13 +238,13 @@ export default function Header() {
                 <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200">
                   <div className="flex items-center space-x-3 py-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.profileImageUrl || undefined} />
+                      <AvatarImage src={(user as any)?.profileImageUrl || undefined} />
                       <AvatarFallback className="text-xs">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        {(user as any)?.firstName?.[0]}{(user as any)?.lastName?.[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-medium">{user?.firstName} {user?.lastName}</p>
+                      <p className="text-sm font-medium">{(user as any)?.firstName} {(user as any)?.lastName}</p>
                       <Badge variant="outline" className="text-xs">
                         {isTalent && <User className="w-3 h-3 mr-1" />}
                         {isOrganization && <Building className="w-3 h-3 mr-1" />}

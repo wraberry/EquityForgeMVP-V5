@@ -11,25 +11,21 @@ import Opportunities from "@/pages/opportunities";
 import PostOpportunity from "@/pages/post-opportunity";
 import Messages from "@/pages/messages";
 import UserTypeSelection from "@/pages/user-type-selection";
-import Signup from "@/pages/signup";
-import Signin from "@/pages/signin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
     <Switch>
-      {/* Public routes - always accessible */}
-      <Route path="/user-type-selection" component={UserTypeSelection} />
-      <Route path="/signup" component={Signup} />
-      <Route path="/signin" component={Signin} />
-      
-      {/* Root route handling */}
       {!isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : !user?.userType ? (

@@ -260,7 +260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/opportunities/:id/applications", isAuthenticated, async (req: any, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       
       // Verify user owns this opportunity
       const user = await storage.getUser(userId);
@@ -278,7 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/applications", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
       if (user?.userType !== "talent") {
@@ -301,7 +301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Message routes
   app.get("/api/conversations", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const conversations = await storage.getConversations(userId);
       res.json(conversations);
     } catch (error) {
@@ -312,7 +312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/messages/:otherUserId", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const otherUserId = req.params.otherUserId;
       const messages = await storage.getMessagesBetweenUsers(userId, otherUserId);
       res.json(messages);
@@ -324,7 +324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/messages", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const messageData = { ...req.body, senderId: userId };
       const validated = insertMessageSchema.parse(messageData);
       const message = await storage.createMessage(validated);

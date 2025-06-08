@@ -53,7 +53,12 @@ export default function Signin() {
   });
 
   const handleGoogleSignIn = () => {
-    window.location.href = "/api/auth/google";
+    // Google OAuth not implemented in current auth system
+    toast({
+      title: "Coming Soon",
+      description: "Google sign-in will be available soon. Please use Replit or email signup.",
+      variant: "destructive",
+    });
   };
 
   const handleReplitSignIn = () => {

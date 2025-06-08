@@ -23,12 +23,12 @@ const isSessionAuthenticated = (req: any, res: any, next: any) => {
 
 // Combined authentication middleware (accepts both Replit and session auth)
 const isAuthenticatedAny = (req: any, res: any, next: any) => {
-  // Check Replit auth first
-  if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+  // Check session auth first (simpler check)
+  if (req.session && req.session.userId) {
     return next();
   }
-  // Check session auth
-  if (req.session && req.session.userId) {
+  // Check Replit auth
+  if (req.isAuthenticated && req.isAuthenticated() && req.user && req.user.claims) {
     return next();
   }
   return res.status(401).json({ message: "Unauthorized" });
@@ -138,7 +138,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticatedAny, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      let userId: string;
+      
+      // Determine user ID based on authentication method
+      if (req.user && req.user.claims) {
+        // Replit authentication
+        userId = req.user.claims.sub;
+      } else if (req.session && req.session.userId) {
+        // Session-based authentication
+        userId = req.session.userId;
+      } else {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -160,9 +172,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/auth/user-type', isAuthenticated, async (req: any, res) => {
+  app.post('/api/auth/user-type', isAuthenticatedAny, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      let userId: string;
+      
+      // Determine user ID based on authentication method
+      if (req.user && req.user.claims) {
+        userId = req.user.claims.sub;
+      } else if (req.session && req.session.userId) {
+        userId = req.session.userId;
+      } else {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
       const { userType } = req.body;
       
       if (!userType || !['talent', 'organization'].includes(userType)) {

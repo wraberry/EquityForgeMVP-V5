@@ -221,10 +221,47 @@ export default function UserTypeSelection() {
                 Sign up / Sign in with Replit
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator className="w-full" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-muted-foreground">
+                    Or
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  if (selectedType) {
+                    localStorage.setItem('pendingUserType', selectedType);
+                  }
+                  window.location.href = "/signup";
+                }}
+              >
+                Create account with Email
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
 
             <div className="text-center text-sm text-gray-600 mt-4">
-              Using Replit's secure authentication system
+              Already have an account?{" "}
+              <button 
+                onClick={() => {
+                  if (selectedType) {
+                    localStorage.setItem('pendingUserType', selectedType);
+                  }
+                  window.location.href = "/signin";
+                }}
+                className="text-primary hover:underline font-medium"
+              >
+                Sign in
+              </button>
             </div>
           </div>
         ) : (

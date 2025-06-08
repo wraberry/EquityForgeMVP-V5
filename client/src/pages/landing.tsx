@@ -82,10 +82,10 @@ export default function Landing() {
 
             {/* Auth Buttons */}
             <div className="hidden md:flex items-center space-x-4">
-              <Button variant="ghost" onClick={handleSignIn}>
+              <Button variant="ghost" onClick={() => window.location.href = "/signin"}>
                 Sign In
               </Button>
-              <Button onClick={handleGetStarted}>
+              <Button onClick={() => window.location.href = "/signup"}>
                 Get Started
               </Button>
             </div>

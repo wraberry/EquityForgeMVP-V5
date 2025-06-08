@@ -31,8 +31,6 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  passwordHash: varchar("password_hash"), // For email/password authentication
-  authProvider: varchar("auth_provider").default("replit"), // 'email', 'replit', 'google'
   userType: varchar("user_type"), // 'talent' or 'organization'
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -185,8 +183,6 @@ export const upsertUserSchema = insertUserSchema.pick({
   firstName: true,
   lastName: true,
   profileImageUrl: true,
-  passwordHash: true,
-  authProvider: true,
   userType: true,
 });
 

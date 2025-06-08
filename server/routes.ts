@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./auth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import "./types";
 import {
   insertProfileSchema,
@@ -19,7 +19,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/auth/user-type', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.userId;
+      const userId = req.user.claims.sub;
       const { userType } = req.body;
       
       if (!userType || !['talent', 'organization'].includes(userType)) {

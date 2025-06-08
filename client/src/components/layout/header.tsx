@@ -34,13 +34,13 @@ export default function Header() {
   };
 
   const handleLogin = () => {
-    window.location.href = "/user-type-selection";
+    window.location.href = "/api/login";
   };
 
   const isActive = (path: string) => location === path;
 
-  const isTalent = user?.userType === "talent";
-  const isOrganization = user?.userType === "organization";
+  const isTalent = (user as any)?.userType === "talent";
+  const isOrganization = (user as any)?.userType === "organization";
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">

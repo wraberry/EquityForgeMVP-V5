@@ -22,10 +22,12 @@ import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations (required for Replit Auth)
+  // User operations (required for Replit Auth and Email Auth)
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserType(id: string, userType: string): Promise<User>;
+  createEmailUser(userData: { email: string; firstName: string; lastName: string; passwordHash: string }): Promise<User>;
 
   // Profile operations
   getProfile(userId: string): Promise<Profile | undefined>;
@@ -63,6 +65,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
@@ -83,6 +90,22 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({ userType, updatedAt: new Date() })
       .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async createEmailUser(userData: { email: string; firstName: string; lastName: string; passwordHash: string }): Promise<User> {
+    const { v4: uuidv4 } = await import("uuid");
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: uuidv4(),
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        passwordHash: userData.passwordHash,
+        authProvider: "email",
+      })
       .returning();
     return user;
   }

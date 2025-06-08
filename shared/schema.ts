@@ -24,13 +24,15 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table for Replit Auth
+// User storage table for Replit Auth and Email/Password Auth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  passwordHash: varchar("password_hash"), // For email/password authentication
+  authProvider: varchar("auth_provider").default("replit"), // 'replit' or 'email'
   userType: varchar("user_type"), // 'talent' or 'organization'
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -183,6 +185,8 @@ export const upsertUserSchema = insertUserSchema.pick({
   firstName: true,
   lastName: true,
   profileImageUrl: true,
+  passwordHash: true,
+  authProvider: true,
   userType: true,
 });
 

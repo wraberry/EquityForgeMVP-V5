@@ -11,13 +11,132 @@ import {
   insertMessageSchema,
 } from "@shared/schema";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
+
+// Session-based authentication middleware for email/password auth
+const isSessionAuthenticated = (req: any, res: any, next: any) => {
+  if (req.session && req.session.userId) {
+    return next();
+  }
+  return res.status(401).json({ message: "Unauthorized" });
+};
+
+// Combined authentication middleware (accepts both Replit and session auth)
+const isAuthenticatedAny = (req: any, res: any, next: any) => {
+  // Check Replit auth first
+  if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+    return next();
+  }
+  // Check session auth
+  if (req.session && req.session.userId) {
+    return next();
+  }
+  return res.status(401).json({ message: "Unauthorized" });
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  // Email/Password authentication routes
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { firstName, lastName, email, password } = req.body;
+
+      // Validate input
+      if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists with this email" });
+      }
+
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      // Create user
+      const user = await storage.createEmailUser({
+        email,
+        firstName,
+        lastName,
+        passwordHash,
+      });
+
+      // Set session
+      req.session.userId = user.id;
+      req.session.authProvider = "email";
+
+      res.status(201).json({ message: "User created successfully", user: { 
+        id: user.id, 
+        email: user.email, 
+        firstName: user.firstName, 
+        lastName: user.lastName,
+        userType: user.userType,
+        authProvider: user.authProvider 
+      }});
+    } catch (error) {
+      console.error("Signup error:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.post("/api/auth/signin", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      // Validate input
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.passwordHash) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Set session
+      req.session.userId = user.id;
+      req.session.authProvider = "email";
+
+      res.json({ message: "Signed in successfully", user: { 
+        id: user.id, 
+        email: user.email, 
+        firstName: user.firstName, 
+        lastName: user.lastName,
+        userType: user.userType,
+        authProvider: user.authProvider 
+      }});
+    } catch (error) {
+      console.error("Signin error:", error);
+      res.status(500).json({ message: "Failed to sign in" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err: any) => {
+      if (err) {
+        return res.status(500).json({ message: "Failed to logout" });
+      }
+      res.json({ message: "Logged out successfully" });
+    });
+  });
+
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticatedAny, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);

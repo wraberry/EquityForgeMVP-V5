@@ -11,6 +11,7 @@ import { User, Building, CheckCircle, ArrowRight, Briefcase, Users, TrendingUp, 
 
 export default function UserTypeSelection() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuth();
   const [selectedType, setSelectedType] = useState<"talent" | "organization" | null>(() => {
     // Check for pending user type from localStorage
@@ -28,7 +29,11 @@ export default function UserTypeSelection() {
         title: "Account setup complete!",
         description: "Welcome to EquityForge.io",
       });
-      window.location.href = "/";
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Use a small delay to ensure the user data is updated before redirect
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 100);
     },
     onError: (error: any) => {
       toast({
@@ -39,16 +44,15 @@ export default function UserTypeSelection() {
     },
   });
 
-  // Handle authentication completion
+  // Handle authentication completion - only run once when user loads
   useEffect(() => {
-    if (isAuthenticated && user && selectedType && !user.userType) {
-      // User just authenticated and has a pending user type
-      updateUserTypeMutation.mutate(selectedType);
-    } else if (isAuthenticated && user && user.userType) {
-      // User is already set up, redirect to home
-      window.location.href = "/";
+    const pendingType = localStorage.getItem('pendingUserType');
+    const userWithType = user as any;
+    if (isAuthenticated && user && pendingType && !userWithType.userType && !updateUserTypeMutation.isPending) {
+      setSelectedType(pendingType as "talent" | "organization");
+      updateUserTypeMutation.mutate(pendingType as "talent" | "organization");
     }
-  }, [isAuthenticated, user, selectedType]);
+  }, [isAuthenticated, userWithType?.id]); // Only depend on auth status and user ID to prevent loops
 
   const handleContinue = () => {
     if (selectedType) {

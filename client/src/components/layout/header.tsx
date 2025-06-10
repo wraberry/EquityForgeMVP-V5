@@ -21,7 +21,8 @@ import {
   MessageCircle, 
   Plus,
   Building,
-  Search
+  Search,
+  Users
 } from "lucide-react";
 
 export default function Header() {

@@ -239,6 +239,11 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   createdAt: true,
 });
 
+export const insertSavedTalentSchema = createInsertSchema(savedTalent).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -247,8 +252,10 @@ export type Organization = typeof organizations.$inferSelect;
 export type Opportunity = typeof opportunities.$inferSelect;
 export type Application = typeof applications.$inferSelect;
 export type Message = typeof messages.$inferSelect;
+export type SavedTalent = typeof savedTalent.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 export type InsertOpportunity = z.infer<typeof insertOpportunitySchema>;
 export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type InsertSavedTalent = z.infer<typeof insertSavedTalentSchema>;

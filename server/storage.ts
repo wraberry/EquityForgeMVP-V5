@@ -323,25 +323,20 @@ export class DatabaseStorage implements IStorage {
 
   // Talent directory operations
   async getTalentProfiles(filters?: any): Promise<(User & { profile: Profile; isSaved?: boolean })[]> {
-    console.log('Filtering talents with:', filters);
-    
     let whereConditions = [eq(users.userType, 'talent')];
     
     // Add filter conditions
     if (filters?.experienceLevel && filters.experienceLevel !== 'any') {
       whereConditions.push(eq(profiles.experienceLevel, filters.experienceLevel));
-      console.log('Added experience level filter:', filters.experienceLevel);
     }
     
     if (filters?.workStatus && filters.workStatus !== 'any') {
       whereConditions.push(eq(profiles.workStatus, filters.workStatus));
-      console.log('Added work status filter:', filters.workStatus);
     }
     
     if (filters?.equityInterest && filters.equityInterest !== 'any') {
       const equityValue = filters.equityInterest === 'true';
       whereConditions.push(eq(profiles.equityInterest, equityValue));
-      console.log('Added equity interest filter:', equityValue);
     }
 
     const query = db
@@ -351,7 +346,6 @@ export class DatabaseStorage implements IStorage {
       .where(and(...whereConditions));
 
     const results = await query;
-    console.log('Database returned', results.length, 'results before filtering');
     
     let filteredResults = results
       .filter(row => row.profiles) // Only return users with profiles
@@ -364,9 +358,6 @@ export class DatabaseStorage implements IStorage {
     // Apply client-side filters for complex searches
     if (filters?.search) {
       const searchTerm = filters.search.toLowerCase();
-      console.log('Applying search filter for term:', searchTerm);
-      
-      const beforeSearchCount = filteredResults.length;
       filteredResults = filteredResults.filter(talent => 
         (talent.firstName?.toLowerCase() || '').includes(searchTerm) ||
         (talent.lastName?.toLowerCase() || '').includes(searchTerm) ||
@@ -375,7 +366,6 @@ export class DatabaseStorage implements IStorage {
         (talent.profile.location?.toLowerCase() || '').includes(searchTerm) ||
         (talent.profile.skills || []).some(skill => skill.toLowerCase().includes(searchTerm))
       );
-      console.log(`Search "${searchTerm}" filtered from ${beforeSearchCount} to ${filteredResults.length} results`);
     }
 
     if (filters?.location) {

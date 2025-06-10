@@ -127,12 +127,55 @@ export default function Messages() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() && selectedConversation) {
+    if ((newMessage.trim() || selectedFile) && selectedConversation) {
+      if (selectedFile) {
+        setUploadingFile(true);
+      }
       sendMessageMutation.mutate({
         toUserId: selectedConversation,
-        content: newMessage.trim(),
+        content: newMessage.trim() || '',
+        file: selectedFile || undefined,
       });
     }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select a file smaller than 10MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
+  const removeSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (filename: string) => {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    if (ext && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+      return <Image className="w-4 h-4" />;
+    }
+    return <FileText className="w-4 h-4" />;
   };
 
   const selectedUser = conversations.find(conv => conv.user.id === selectedConversation)?.user;
@@ -244,56 +287,148 @@ export default function Messages() {
               ) : (
                 <>
                   {/* Messages */}
-                  <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                    {messagesLoading ? (
-                      <div>Loading messages...</div>
-                    ) : messages.length === 0 ? (
-                      <div className="text-center text-gray-600 py-8">
-                        <p>No messages yet. Start the conversation!</p>
-                      </div>
-                    ) : (
-                      messages.map((message) => (
-                        <div
-                          key={message.id}
-                          className={`flex ${
-                            message.fromUserId === user?.id ? 'justify-end' : 'justify-start'
-                          }`}
-                        >
+                  <ScrollArea className="flex-1 pr-4 mb-4">
+                    <div className="space-y-4">
+                      {messagesLoading ? (
+                        <div className="text-center py-8">Loading messages...</div>
+                      ) : messages.length === 0 ? (
+                        <div className="text-center text-gray-600 py-8">
+                          <p>No messages yet. Start the conversation!</p>
+                        </div>
+                      ) : (
+                        messages.map((message) => (
                           <div
-                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                              message.fromUserId === user?.id
-                                ? 'bg-primary text-white'
-                                : 'bg-gray-200 text-gray-900'
+                            key={message.id}
+                            className={`flex ${
+                              message.fromUserId === user?.id ? 'justify-end' : 'justify-start'
                             }`}
                           >
-                            <p className="text-sm">{message.content}</p>
-                            <p className={`text-xs mt-1 ${
-                              message.fromUserId === user?.id ? 'text-blue-100' : 'text-gray-500'
-                            }`}>
-                              {new Date(message.createdAt!).toLocaleTimeString()}
-                            </p>
+                            <div
+                              className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
+                                message.fromUserId === user?.id
+                                  ? 'bg-primary text-white'
+                                  : 'bg-gray-200 text-gray-900'
+                              }`}
+                            >
+                              {message.messageType === 'file' && message.attachmentUrl ? (
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    {getFileIcon(message.attachmentName || '')}
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium truncate">
+                                        {message.attachmentName}
+                                      </p>
+                                      {message.attachmentSize && (
+                                        <p className={`text-xs ${
+                                          message.fromUserId === user?.id ? 'text-blue-100' : 'text-gray-500'
+                                        }`}>
+                                          {formatFileSize(message.attachmentSize)}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant={message.fromUserId === user?.id ? "secondary" : "outline"}
+                                      asChild
+                                    >
+                                      <a
+                                        href={message.attachmentUrl}
+                                        download={message.attachmentName}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        <Download className="w-3 h-3" />
+                                      </a>
+                                    </Button>
+                                  </div>
+                                  {message.content && message.content !== 'File attachment' && (
+                                    <p className="text-sm">{message.content}</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-sm">{message.content}</p>
+                              )}
+                              <div className="flex items-center justify-between mt-2">
+                                <p className={`text-xs ${
+                                  message.fromUserId === user?.id ? 'text-blue-100' : 'text-gray-500'
+                                }`}>
+                                  {new Date(message.createdAt!).toLocaleTimeString()}
+                                </p>
+                                {!message.isRead && message.fromUserId !== user?.id && (
+                                  <div className={`w-2 h-2 rounded-full ${
+                                    message.fromUserId === user?.id ? 'bg-blue-200' : 'bg-blue-500'
+                                  }`} />
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                        ))
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  </ScrollArea>
 
                   {/* Message Input */}
-                  <form onSubmit={handleSendMessage} className="flex gap-2">
-                    <Input
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Type your message..."
-                      className="flex-1"
-                    />
-                    <Button 
-                      type="submit" 
-                      disabled={!newMessage.trim() || sendMessageMutation.isPending}
-                      size="icon"
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </form>
+                  <div className="space-y-3">
+                    {/* File attachment preview */}
+                    {selectedFile && (
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 flex-1">
+                          {getFileIcon(selectedFile.name)}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                            <p className="text-xs text-gray-500">{formatFileSize(selectedFile.size)}</p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeSelectedFile}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleSendMessage} className="flex gap-2">
+                      <div className="flex gap-2 flex-1">
+                        <Input
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          placeholder={selectedFile ? "Add a message (optional)..." : "Type your message..."}
+                          className="flex-1"
+                        />
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileSelect}
+                          className="hidden"
+                          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingFile}
+                        >
+                          <Paperclip className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <Button 
+                        type="submit" 
+                        disabled={(!newMessage.trim() && !selectedFile) || sendMessageMutation.isPending || uploadingFile}
+                        size="icon"
+                      >
+                        {uploadingFile ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </form>
+                  </div>
                 </>
               )}
             </CardContent>

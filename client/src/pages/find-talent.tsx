@@ -382,7 +382,7 @@ export default function FindTalent() {
         <Card className="text-center py-12">
           <CardContent>
             <div className="text-gray-400 mb-4">
-              <Users className="w-16 h-16 mx-auto" />
+              <Search className="w-16 h-16 mx-auto" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No talent found</h3>
             <p className="text-gray-600 mb-4">

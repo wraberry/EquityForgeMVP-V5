@@ -10,6 +10,8 @@ import Profile from "@/pages/profile";
 import Opportunities from "@/pages/opportunities";
 import PostOpportunity from "@/pages/post-opportunity";
 import Messages from "@/pages/messages";
+import FindTalent from "@/pages/find-talent";
+import TalentProfile from "@/pages/talent-profile";
 import UserTypeSelection from "@/pages/user-type-selection";
 import Signup from "@/pages/signup";
 import Signin from "@/pages/signin";
@@ -45,6 +47,8 @@ function Router() {
           <Route path="/profile" component={Profile} />
           <Route path="/opportunities" component={Opportunities} />
           <Route path="/post-opportunity" component={PostOpportunity} />
+          <Route path="/find-talent" component={FindTalent} />
+          <Route path="/talent/:id" component={TalentProfile} />
           <Route path="/messages" component={Messages} />
         </>
       )}

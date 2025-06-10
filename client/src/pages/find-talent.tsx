@@ -20,6 +20,7 @@ import {
   Bookmark
 } from "lucide-react";
 import { Link } from "wouter";
+import Header from "@/components/layout/header";
 
 interface TalentProfile {
   id: string;
@@ -136,32 +137,37 @@ export default function FindTalent() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-300 rounded w-24"></div>
-                    <div className="h-3 bg-gray-300 rounded w-32"></div>
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-300 rounded w-24"></div>
+                      <div className="h-3 bg-gray-300 rounded w-32"></div>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-300 rounded"></div>
-                  <div className="h-3 bg-gray-300 rounded w-2/3"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-300 rounded"></div>
+                    <div className="h-3 bg-gray-300 rounded w-2/3"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">People Directory</h1>
@@ -394,6 +400,7 @@ export default function FindTalent() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }

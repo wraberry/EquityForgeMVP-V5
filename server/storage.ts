@@ -5,6 +5,7 @@ import {
   opportunities,
   applications,
   messages,
+  savedTalent,
   type User,
   type UpsertUser,
   type Profile,
@@ -12,14 +13,16 @@ import {
   type Opportunity,
   type Application,
   type Message,
+  type SavedTalent,
   type InsertProfile,
   type InsertOrganization,
   type InsertOpportunity,
   type InsertApplication,
   type InsertMessage,
+  type InsertSavedTalent,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or } from "drizzle-orm";
+import { eq, desc, and, or, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth and Email Auth)

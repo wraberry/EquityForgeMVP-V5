@@ -8,6 +8,7 @@ import {
   serial,
   boolean,
   integer,
+  unique,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -54,6 +55,16 @@ export const profiles = pgTable("profiles", {
   equityInterest: boolean("equity_interest").default(true),
   availableFor: text("available_for").array(), // ['full-time', 'part-time', 'contract', 'co-founder']
   isPublic: boolean("is_public").default(true),
+  // Additional fields for comprehensive talent profiles
+  experienceLevel: varchar("experience_level"), // 'entry', 'mid', 'senior', 'lead', 'executive'
+  workStatus: varchar("work_status").default("open"), // 'open', 'not-looking', 'interviewing'
+  languages: jsonb("languages"), // [{"language": "English", "proficiency": "Native"}]
+  certifications: text("certifications").array(),
+  education: jsonb("education"), // [{"institution": "...", "degree": "...", "field": "...", "year": "..."}]
+  recommendations: jsonb("recommendations"), // [{"name": "...", "title": "...", "company": "...", "text": "..."}]
+  timezone: varchar("timezone"),
+  hourlyRate: varchar("hourly_rate"), // For contractors
+  profileViews: integer("profile_views").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -112,6 +123,15 @@ export const messages = pgTable("messages", {
   toUserId: varchar("to_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Saved talent profiles for organizations
+export const savedTalent = pgTable("saved_talent", {
+  id: serial("id").primaryKey(),
+  organizationUserId: varchar("organization_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  talentUserId: varchar("talent_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

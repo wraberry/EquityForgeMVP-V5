@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Send, Users } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { MessageCircle, Send, Users, Paperclip, Download, FileText, Image, X, Plus } from "lucide-react";
 import type { Conversation, Message } from "@/lib/types";
 
 export default function Messages() {
@@ -22,6 +23,10 @@ export default function Messages() {
 
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -50,17 +55,57 @@ export default function Messages() {
     enabled: isAuthenticated && !!selectedConversation,
   });
 
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Auto-refresh messages every 5 seconds
+  useEffect(() => {
+    if (!selectedConversation) return;
+    
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/messages", selectedConversation] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [selectedConversation, queryClient]);
+
   // Send message mutation
   const sendMessageMutation = useMutation({
-    mutationFn: async ({ toUserId, content }: { toUserId: string; content: string }) => {
-      return await apiRequest("POST", "/api/messages", { toUserId, content });
+    mutationFn: async ({ toUserId, content, file }: { toUserId: string; content: string; file?: File }) => {
+      if (file) {
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('toUserId', toUserId);
+        formData.append('content', content || 'File attachment');
+        formData.append('file', file);
+        formData.append('messageType', 'file');
+        
+        const response = await fetch('/api/messages/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to upload file');
+        }
+        
+        return response.json();
+      } else {
+        return await apiRequest("POST", "/api/messages", { toUserId, content, messageType: 'text' });
+      }
     },
     onSuccess: () => {
       setNewMessage("");
+      setSelectedFile(null);
+      setUploadingFile(false);
       queryClient.invalidateQueries({ queryKey: ["/api/messages", selectedConversation] });
       queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
     },
     onError: (error) => {
+      setUploadingFile(false);
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",

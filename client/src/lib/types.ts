@@ -1,5 +1,7 @@
 import type { User, Profile, Organization, Opportunity, Application, Message } from "@shared/schema";
 
+export type { Message } from "@shared/schema";
+
 export type UserWithProfile = User & {
   additionalData?: Profile | Organization;
 };

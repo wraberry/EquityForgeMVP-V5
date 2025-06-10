@@ -122,6 +122,10 @@ export const messages = pgTable("messages", {
   fromUserId: varchar("from_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   toUserId: varchar("to_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
+  messageType: varchar("message_type").notNull().default("text"), // 'text', 'file'
+  attachmentUrl: varchar("attachment_url"), // URL to uploaded file
+  attachmentName: varchar("attachment_name"), // Original filename
+  attachmentSize: integer("attachment_size"), // File size in bytes
   isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });

@@ -359,32 +359,32 @@ export class DatabaseStorage implements IStorage {
     if (filters?.search) {
       const searchTerm = filters.search.toLowerCase();
       filteredResults = filteredResults.filter(talent => 
-        talent.firstName.toLowerCase().includes(searchTerm) ||
-        talent.lastName.toLowerCase().includes(searchTerm) ||
-        talent.profile.title.toLowerCase().includes(searchTerm) ||
-        talent.profile.bio.toLowerCase().includes(searchTerm) ||
-        talent.profile.location.toLowerCase().includes(searchTerm) ||
-        talent.profile.skills.some(skill => skill.toLowerCase().includes(searchTerm))
+        (talent.firstName?.toLowerCase() || '').includes(searchTerm) ||
+        (talent.lastName?.toLowerCase() || '').includes(searchTerm) ||
+        (talent.profile.title?.toLowerCase() || '').includes(searchTerm) ||
+        (talent.profile.bio?.toLowerCase() || '').includes(searchTerm) ||
+        (talent.profile.location?.toLowerCase() || '').includes(searchTerm) ||
+        (talent.profile.skills || []).some(skill => skill.toLowerCase().includes(searchTerm))
       );
     }
 
     if (filters?.location) {
       const locationTerm = filters.location.toLowerCase();
       filteredResults = filteredResults.filter(talent => 
-        talent.profile.location.toLowerCase().includes(locationTerm)
+        (talent.profile.location?.toLowerCase() || '').includes(locationTerm)
       );
     }
 
     if (filters?.skills) {
       const skillTerm = filters.skills.toLowerCase();
       filteredResults = filteredResults.filter(talent => 
-        talent.profile.skills.some(skill => skill.toLowerCase().includes(skillTerm))
+        (talent.profile.skills || []).some(skill => skill.toLowerCase().includes(skillTerm))
       );
     }
 
     if (filters?.availableFor && filters.availableFor !== 'any') {
       filteredResults = filteredResults.filter(talent => 
-        talent.profile.availableFor.includes(filters.availableFor)
+        (talent.profile.availableFor || []).includes(filters.availableFor)
       );
     }
     

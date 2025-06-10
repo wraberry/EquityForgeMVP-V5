@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -68,16 +68,27 @@ export default function FindTalent() {
     equityInterest: ""
   });
 
+  const [debouncedFilters, setDebouncedFilters] = useState(filters);
+
+  // Debounce filter changes to avoid excessive API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFilters(filters);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [filters]);
+
   // Fetch talent profiles - always enabled for organization users
   const { data: talentsData, isLoading, error } = useQuery<TalentProfile[]>({
-    queryKey: ["/api/talent", filters],
+    queryKey: ["/api/talent", debouncedFilters],
     enabled: !!user, // Allow access regardless of organization setup
     retry: 2,
     queryFn: async () => {
       const params = new URLSearchParams();
       
       // Add filters to query params, handling "any" values
-      Object.entries(filters).forEach(([key, value]) => {
+      Object.entries(debouncedFilters).forEach(([key, value]) => {
         if (value && value !== "any" && value !== "") {
           params.append(key, value);
         }

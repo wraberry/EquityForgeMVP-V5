@@ -90,17 +90,6 @@ export default function Header() {
                 </Link>
                 
                 {isOrganization && (
-                  <Link href="/find-talent">
-                    <a className={`flex items-center text-gray-700 hover:text-primary transition-colors duration-200 ${
-                      isActive("/find-talent") ? "text-primary font-medium" : ""
-                    }`}>
-                      <Users className="w-4 h-4 mr-2" />
-                      Find Talent
-                    </a>
-                  </Link>
-                )}
-                
-                {isOrganization && (
                   <Link href="/post-opportunity">
                     <a className={`flex items-center text-gray-700 hover:text-primary transition-colors duration-200 ${
                       isActive("/post-opportunity") ? "text-primary font-medium" : ""
@@ -235,17 +224,6 @@ export default function Header() {
                     Find Opportunities
                   </a>
                 </Link>
-                
-                {isOrganization && (
-                  <Link href="/find-talent">
-                    <a className={`flex items-center text-gray-700 hover:text-primary transition-colors duration-200 ${
-                      isActive("/find-talent") ? "text-primary font-medium" : ""
-                    }`}>
-                      <Users className="w-4 h-4 mr-2" />
-                      Find Talent
-                    </a>
-                  </Link>
-                )}
                 
                 {isOrganization && (
                   <Link href="/post-opportunity">

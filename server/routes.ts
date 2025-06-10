@@ -479,6 +479,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Talent directory routes
+  app.get("/api/talent", isAuthenticatedAny, async (req: any, res) => {
+    try {
+      const viewerUserId = req.user?.claims?.sub || req.session?.userId;
+      if (!viewerUserId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const talents = await storage.getTalentProfiles(req.query);
+      
+      // Check which talents are saved by the viewer (if they're an organization)
+      const viewer = await storage.getUser(viewerUserId);
+      if (viewer?.userType === 'organization') {
+        for (const talent of talents) {
+          talent.isSaved = await storage.isTalentSaved(viewerUserId, talent.id);
+        }
+      }
+
+      res.json(talents);
+    } catch (error) {
+      console.error("Error fetching talent profiles:", error);
+      res.status(500).json({ message: "Failed to fetch talent profiles" });
+    }
+  });
+
+  app.get("/api/talent/:id", isAuthenticatedAny, async (req: any, res) => {
+    try {
+      const talentId = req.params.id;
+      const viewerUserId = req.user?.claims?.sub || req.session?.userId;
+      
+      const talent = await storage.getTalentProfile(talentId, viewerUserId);
+      if (!talent) {
+        return res.status(404).json({ message: "Talent profile not found" });
+      }
+
+      res.json(talent);
+    } catch (error) {
+      console.error("Error fetching talent profile:", error);
+      res.status(500).json({ message: "Failed to fetch talent profile" });
+    }
+  });
+
+  // Saved talent routes
+  app.get("/api/saved-talent", isAuthenticatedAny, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const savedTalents = await storage.getSavedTalent(userId);
+      res.json(savedTalents);
+    } catch (error) {
+      console.error("Error fetching saved talent:", error);
+      res.status(500).json({ message: "Failed to fetch saved talent" });
+    }
+  });
+
+  app.post("/api/saved-talent", isAuthenticatedAny, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { talentUserId, notes } = req.body;
+      if (!talentUserId) {
+        return res.status(400).json({ message: "Talent user ID is required" });
+      }
+
+      const saved = await storage.saveTalent(userId, talentUserId, notes);
+      res.json({ message: "Talent saved successfully", saved });
+    } catch (error) {
+      console.error("Error saving talent:", error);
+      res.status(500).json({ message: "Failed to save talent" });
+    }
+  });
+
+  app.delete("/api/saved-talent", isAuthenticatedAny, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { talentUserId } = req.body;
+      if (!talentUserId) {
+        return res.status(400).json({ message: "Talent user ID is required" });
+      }
+
+      await storage.unsaveTalent(userId, talentUserId);
+      res.json({ message: "Talent unsaved successfully" });
+    } catch (error) {
+      console.error("Error unsaving talent:", error);
+      res.status(500).json({ message: "Failed to unsave talent" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -57,6 +57,16 @@ export interface IStorage {
   getConversations(userId: string): Promise<{ user: User; lastMessage: Message; unreadCount: number }[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<Message>;
+
+  // Talent directory operations
+  getTalentProfiles(filters?: any): Promise<(User & { profile: Profile; isSaved?: boolean })[]>;
+  getTalentProfile(userId: string, viewerUserId?: string): Promise<(User & { profile: Profile; isSaved?: boolean }) | undefined>;
+  
+  // Saved talent operations
+  getSavedTalent(organizationUserId: string): Promise<(SavedTalent & { user: User; profile: Profile })[]>;
+  saveTalent(organizationUserId: string, talentUserId: string, notes?: string): Promise<SavedTalent>;
+  unsaveTalent(organizationUserId: string, talentUserId: string): Promise<void>;
+  isTalentSaved(organizationUserId: string, talentUserId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -306,6 +316,109 @@ export class DatabaseStorage implements IStorage {
       .where(eq(messages.id, id))
       .returning();
     return updatedMessage;
+  }
+
+  // Talent directory operations
+  async getTalentProfiles(filters?: any): Promise<(User & { profile: Profile; isSaved?: boolean })[]> {
+    const query = db
+      .select()
+      .from(users)
+      .leftJoin(profiles, eq(users.id, profiles.userId))
+      .where(eq(users.userType, 'talent'));
+
+    const results = await query;
+    
+    return results
+      .filter(row => row.profiles) // Only return users with profiles
+      .map(row => ({
+        ...row.users,
+        profile: row.profiles as Profile,
+        isSaved: false // Will be updated based on viewer's saved list
+      }));
+  }
+
+  async getTalentProfile(userId: string, viewerUserId?: string): Promise<(User & { profile: Profile; isSaved?: boolean }) | undefined> {
+    const [result] = await db
+      .select()
+      .from(users)
+      .leftJoin(profiles, eq(users.id, profiles.userId))
+      .where(and(eq(users.id, userId), eq(users.userType, 'talent')));
+
+    if (!result || !result.profiles) {
+      return undefined;
+    }
+
+    // Check if saved by viewer
+    let isSaved = false;
+    if (viewerUserId) {
+      isSaved = await this.isTalentSaved(viewerUserId, userId);
+    }
+
+    // Increment profile views
+    await db
+      .update(profiles)
+      .set({ profileViews: sql`${profiles.profileViews} + 1` })
+      .where(eq(profiles.userId, userId));
+
+    return {
+      ...result.users,
+      profile: result.profiles as Profile,
+      isSaved
+    };
+  }
+
+  // Saved talent operations
+  async getSavedTalent(organizationUserId: string): Promise<(SavedTalent & { user: User; profile: Profile })[]> {
+    const results = await db
+      .select()
+      .from(savedTalent)
+      .leftJoin(users, eq(savedTalent.talentUserId, users.id))
+      .leftJoin(profiles, eq(users.id, profiles.userId))
+      .where(eq(savedTalent.organizationUserId, organizationUserId));
+
+    return results
+      .filter(row => row.users && row.profiles)
+      .map(row => ({
+        ...row.saved_talent,
+        user: row.users as User,
+        profile: row.profiles as Profile
+      }));
+  }
+
+  async saveTalent(organizationUserId: string, talentUserId: string, notes?: string): Promise<SavedTalent> {
+    const [saved] = await db
+      .insert(savedTalent)
+      .values({
+        organizationUserId,
+        talentUserId,
+        notes
+      })
+      .returning();
+    return saved;
+  }
+
+  async unsaveTalent(organizationUserId: string, talentUserId: string): Promise<void> {
+    await db
+      .delete(savedTalent)
+      .where(
+        and(
+          eq(savedTalent.organizationUserId, organizationUserId),
+          eq(savedTalent.talentUserId, talentUserId)
+        )
+      );
+  }
+
+  async isTalentSaved(organizationUserId: string, talentUserId: string): Promise<boolean> {
+    const [result] = await db
+      .select()
+      .from(savedTalent)
+      .where(
+        and(
+          eq(savedTalent.organizationUserId, organizationUserId),
+          eq(savedTalent.talentUserId, talentUserId)
+        )
+      );
+    return !!result;
   }
 }
 

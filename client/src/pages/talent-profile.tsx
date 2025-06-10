@@ -75,7 +75,7 @@ export default function TalentProfile() {
   const talentId = params?.id;
 
   // Fetch talent profile
-  const { data: talent, isLoading } = useQuery({
+  const { data: talent, isLoading } = useQuery<TalentProfileData>({
     queryKey: ["/api/talent", talentId],
     enabled: !!talentId && !!user,
   });

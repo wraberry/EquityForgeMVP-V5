@@ -323,21 +323,72 @@ export class DatabaseStorage implements IStorage {
 
   // Talent directory operations
   async getTalentProfiles(filters?: any): Promise<(User & { profile: Profile; isSaved?: boolean })[]> {
+    let whereConditions = [eq(users.userType, 'talent')];
+    
+    // Add filter conditions
+    if (filters?.experienceLevel && filters.experienceLevel !== 'any') {
+      whereConditions.push(eq(profiles.experienceLevel, filters.experienceLevel));
+    }
+    
+    if (filters?.workStatus && filters.workStatus !== 'any') {
+      whereConditions.push(eq(profiles.workStatus, filters.workStatus));
+    }
+    
+    if (filters?.equityInterest && filters.equityInterest !== 'any') {
+      const equityValue = filters.equityInterest === 'true';
+      whereConditions.push(eq(profiles.equityInterest, equityValue));
+    }
+
     const query = db
       .select()
       .from(users)
       .leftJoin(profiles, eq(users.id, profiles.userId))
-      .where(eq(users.userType, 'talent'));
+      .where(and(...whereConditions));
 
     const results = await query;
     
-    return results
+    let filteredResults = results
       .filter(row => row.profiles) // Only return users with profiles
       .map(row => ({
         ...row.users,
         profile: row.profiles as Profile,
         isSaved: false // Will be updated based on viewer's saved list
       }));
+
+    // Apply client-side filters for complex searches
+    if (filters?.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filteredResults = filteredResults.filter(talent => 
+        talent.firstName.toLowerCase().includes(searchTerm) ||
+        talent.lastName.toLowerCase().includes(searchTerm) ||
+        talent.profile.title.toLowerCase().includes(searchTerm) ||
+        talent.profile.bio.toLowerCase().includes(searchTerm) ||
+        talent.profile.location.toLowerCase().includes(searchTerm) ||
+        talent.profile.skills.some(skill => skill.toLowerCase().includes(searchTerm))
+      );
+    }
+
+    if (filters?.location) {
+      const locationTerm = filters.location.toLowerCase();
+      filteredResults = filteredResults.filter(talent => 
+        talent.profile.location.toLowerCase().includes(locationTerm)
+      );
+    }
+
+    if (filters?.skills) {
+      const skillTerm = filters.skills.toLowerCase();
+      filteredResults = filteredResults.filter(talent => 
+        talent.profile.skills.some(skill => skill.toLowerCase().includes(skillTerm))
+      );
+    }
+
+    if (filters?.availableFor && filters.availableFor !== 'any') {
+      filteredResults = filteredResults.filter(talent => 
+        talent.profile.availableFor.includes(filters.availableFor)
+      );
+    }
+    
+    return filteredResults;
   }
 
   async getTalentProfile(userId: string, viewerUserId?: string): Promise<(User & { profile: Profile; isSaved?: boolean }) | undefined> {

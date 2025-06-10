@@ -73,6 +73,22 @@ export default function FindTalent() {
     queryKey: ["/api/talent", filters],
     enabled: !!user, // Allow access regardless of organization setup
     retry: 2,
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      
+      // Add filters to query params, handling "any" values
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && value !== "any" && value !== "") {
+          params.append(key, value);
+        }
+      });
+      
+      const response = await fetch(`/api/talent?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch talent profiles');
+      }
+      return response.json();
+    },
   });
 
   // Ensure talents is always an array
@@ -113,12 +129,12 @@ export default function FindTalent() {
   const clearFilters = () => {
     setFilters({
       search: "",
-      experienceLevel: "",
-      workStatus: "",
+      experienceLevel: "any",
+      workStatus: "any",
       location: "",
       skills: "",
-      availableFor: "",
-      equityInterest: ""
+      availableFor: "any",
+      equityInterest: "any"
     });
   };
 
@@ -241,7 +257,7 @@ export default function FindTalent() {
                         <SelectValue placeholder="Any level" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any level</SelectItem>
+                        <SelectItem value="any">Any level</SelectItem>
                         <SelectItem value="entry">Entry Level</SelectItem>
                         <SelectItem value="mid">Mid Level</SelectItem>
                         <SelectItem value="senior">Senior Level</SelectItem>
@@ -257,7 +273,7 @@ export default function FindTalent() {
                         <SelectValue placeholder="Any status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any status</SelectItem>
+                        <SelectItem value="any">Any status</SelectItem>
                         <SelectItem value="open">Open to Work</SelectItem>
                         <SelectItem value="interviewing">Interviewing</SelectItem>
                         <SelectItem value="not-looking">Not Looking</SelectItem>
@@ -272,7 +288,7 @@ export default function FindTalent() {
                         <SelectValue placeholder="Any type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any type</SelectItem>
+                        <SelectItem value="any">Any type</SelectItem>
                         <SelectItem value="full-time">Full-time</SelectItem>
                         <SelectItem value="part-time">Part-time</SelectItem>
                         <SelectItem value="contract">Contract</SelectItem>
@@ -288,7 +304,7 @@ export default function FindTalent() {
                         <SelectValue placeholder="Any preference" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any preference</SelectItem>
+                        <SelectItem value="any">Any preference</SelectItem>
                         <SelectItem value="true">Interested in Equity</SelectItem>
                         <SelectItem value="false">Not Interested</SelectItem>
                       </SelectContent>

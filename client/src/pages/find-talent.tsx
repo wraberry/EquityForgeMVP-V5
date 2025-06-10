@@ -71,6 +71,13 @@ export default function FindTalent() {
   // Fetch talent profiles
   const { data: talents = [], isLoading } = useQuery<TalentProfile[]>({
     queryKey: ["/api/talent", filters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+      return await apiRequest('GET', `/api/talent?${params.toString()}`);
+    },
     enabled: !!user,
   });
 
@@ -178,7 +185,7 @@ export default function FindTalent() {
       {/* Search and Filters */}
       <div className="mb-8 space-y-4">
         {/* Search Bar */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
@@ -191,22 +198,30 @@ export default function FindTalent() {
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto"
           >
             <Filter className="w-4 h-4" />
-            More Filters
+            <span className="sm:hidden">Filters</span>
+            <span className="hidden sm:inline">More Filters</span>
           </Button>
         </div>
 
         {/* Quick Filter Pills */}
         <div className="flex gap-2 flex-wrap">
-          {['Open to Work', 'Available Now', 'Senior Experience', 'Remote'].map((pill) => (
+          {[
+            { label: 'Open to Work', filter: 'workStatus', value: 'open' },
+            { label: 'Senior Experience', filter: 'experienceLevel', value: 'senior' },
+            { label: 'Remote', filter: 'location', value: 'remote' },
+            { label: 'Full-time', filter: 'availableFor', value: 'full-time' }
+          ].map((pill) => (
             <Badge
-              key={pill}
-              variant="outline"
+              key={pill.label}
+              variant={filters[pill.filter as keyof FilterState] === pill.value ? "default" : "outline"}
               className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+              onClick={() => handleFilterChange(pill.filter as keyof FilterState, 
+                filters[pill.filter as keyof FilterState] === pill.value ? '' : pill.value)}
             >
-              {pill}
+              {pill.label}
             </Badge>
           ))}
         </div>
@@ -214,7 +229,7 @@ export default function FindTalent() {
         {/* Extended Filters */}
         {showFilters && (
           <Card className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Experience Level</label>
                 <Select value={filters.experienceLevel} onValueChange={(value) => handleFilterChange('experienceLevel', value)}>
@@ -284,7 +299,7 @@ export default function FindTalent() {
       </div>
 
       {/* Talent Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {talents.map((talent: TalentProfile) => (
           <Card key={talent.id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
@@ -368,13 +383,13 @@ export default function FindTalent() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Link href={`/talent/${talent.id}`}>
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full sm:flex-1">
                     View Profile
                   </Button>
                 </Link>
-                <Button size="sm" className="flex items-center gap-1">
+                <Button size="sm" className="w-full sm:w-auto flex items-center justify-center gap-1">
                   <Mail className="w-3 h-3" />
                   Contact
                 </Button>

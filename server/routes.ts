@@ -139,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', isAuthenticatedAny, async (req: any, res) => {
     try {
       let userId: string;
-      
+
       // Determine user ID based on authentication method
       if (req.user && req.user.claims) {
         // Replit authentication
@@ -152,7 +152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -175,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/user-type', isAuthenticatedAny, async (req: any, res) => {
     try {
       let userId: string;
-      
+
       // Determine user ID based on authentication method
       if (req.user && req.user.claims) {
         userId = req.user.claims.sub;
@@ -186,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { userType } = req.body;
-      
+
       if (!userType || !['talent', 'organization'].includes(userType)) {
         return res.status(400).json({ message: "Invalid user type" });
       }
@@ -261,13 +261,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const organizationData = insertOrganizationSchema.parse({ ...req.body, userId });
-      
+
       const existingOrganization = await storage.getOrganization(userId);
       if (existingOrganization) {
         const updatedOrganization = await storage.updateOrganization(userId, req.body);
         return res.json(updatedOrganization);
       }
-      
+
       const organization = await storage.createOrganization(organizationData);
       res.status(201).json(organization);
     } catch (error) {
@@ -284,7 +284,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const talentNeedsData = req.body;
-      
+
       // Update organization with talent needs
       const organization = await storage.updateOrganization(userId, talentNeedsData);
       res.json(organization);
@@ -298,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, role, message } = req.body;
       const inviterUserId = req.user.claims.sub;
-      
+
       // Return success - in production this would send an email invitation
       res.json({ 
         message: "Invitation sent successfully",
@@ -341,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (user?.userType !== "organization") {
         return res.status(403).json({ message: "Only organizations can access this endpoint" });
       }
@@ -363,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (user?.userType !== "organization") {
         return res.status(403).json({ message: "Only organizations can post opportunities" });
       }
@@ -402,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const opportunityId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
-      
+
       // Verify user owns this opportunity
       const user = await storage.getUser(userId);
       if (user?.userType !== "organization") {
@@ -421,7 +421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (user?.userType !== "talent") {
         return res.status(403).json({ message: "Only talent can submit applications" });
       }
@@ -488,7 +488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const talents = await storage.getTalentProfiles(req.query);
-      
+
       // Check which talents are saved by the viewer (if they're an organization)
       const viewer = await storage.getUser(viewerUserId);
       if (viewer?.userType === 'organization') {
@@ -508,7 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const talentId = req.params.id;
       const viewerUserId = req.user?.claims?.sub || req.session?.userId;
-      
+
       const talent = await storage.getTalentProfile(talentId, viewerUserId);
       if (!talent) {
         return res.status(404).json({ message: "Talent profile not found" });

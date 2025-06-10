@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import Header from "@/components/layout/header";
+import Footer from "@/components/layout/footer";
 
 interface TalentProfile {
   id: string;
@@ -401,6 +402,7 @@ export default function FindTalent() {
         </Card>
       )}
       </div>
+      <Footer />
     </div>
   );
 }

@@ -74,6 +74,17 @@ export default function TalentProfile() {
   const { toast } = useToast();
   const talentId = params?.id;
 
+  if (!talentId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Not Found</h2>
+          <p className="text-gray-600">The talent profile you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
+  }
+
   // Fetch talent profile
   const { data: talent, isLoading } = useQuery<TalentProfileData>({
     queryKey: ["/api/talent", talentId],
@@ -330,7 +341,7 @@ export default function TalentProfile() {
                   <div key={index}>
                     <div className="flex items-start space-x-3">
                       <Avatar className="w-10 h-10">
-                        <AvatarFallback>{rec.name[0]}</AvatarFallback>
+                        <AvatarFallback>{rec.name?.[0] || 'R'}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
